@@ -3,11 +3,13 @@ package com.krzek.votacao.model;
 import org.springframework.data.annotation.Id;
 
 import java.util.Objects;
+import javax.validation.constraints.NotBlank;
 
 public class Pauta {
 
     @Id
     private String id;
+    @NotBlank(message = "pauta-1")
     private String nome;
 
 

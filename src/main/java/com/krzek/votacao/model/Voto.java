@@ -3,14 +3,23 @@ package com.krzek.votacao.model;
 import org.springframework.data.annotation.Id;
 
 import java.util.Objects;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 public class Voto {
 
     @Id
     private String id;
+
+    @NotBlank(message = "voto-1")
     private String cpf;
-    private Pauta pauta;
+
+    @NotNull(message = "voto-2")
     private Boolean escolha = false;
+
+    @NotNull(message = "voto-3")
+    private Pauta pauta;
+
 
     public Voto() {
     }

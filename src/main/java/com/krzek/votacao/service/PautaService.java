@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class PautaService {
@@ -24,12 +23,7 @@ public class PautaService {
     }
 
     public Pauta findById(String id) {
-        Optional<Pauta> findById = pautaRepository.findById(id);
-
-        if (!findById.isPresent()) {
-            throw new PautaNotFoundException();
-        }
-        return findById.get();
+        return pautaRepository.findById(id).orElseThrow(PautaNotFoundException::new);
     }
 
     public Pauta save(Pauta pauta) {
@@ -37,11 +31,7 @@ public class PautaService {
     }
 
     public void delete(Pauta pauta) {
-        Optional<Pauta> pautaById = pautaRepository.findById(pauta.getId());
-
-        if (!pautaById.isPresent()) {
-            throw new PautaNotFoundException();
-        }
+        pautaRepository.findById(pauta.getId()).orElseThrow(PautaNotFoundException::new);
         pautaRepository.delete(pauta);
     }
 }

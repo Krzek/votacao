@@ -48,21 +48,12 @@ public class VotacaoService {
     }
 
     public void delete(Voto voto) {
-        Optional<Voto> votoById = votoRepository.findById(voto.getId());
-        if (!votoById.isPresent()) {
-            throw new VotoNotFoundException();
-        }
+        votoRepository.findById(voto.getId()).orElseThrow(VotoNotFoundException::new);
         votoRepository.delete(voto);
     }
 
     public List<Voto> findVotosByPautaId(String pautaId) {
-        Optional<List<Voto>> findByPautaId = votoRepository.findByPautaId(pautaId);
-
-        if (!findByPautaId.isPresent()) {
-            throw new VotoNotFoundException();
-        }
-
-        return findByPautaId.get();
+        return votoRepository.findByPautaId(pautaId).orElseThrow(VotoNotFoundException::new);
     }
 
     public VotacaoDto buildVotacaoPauta(String id) {

@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class SessaoService {
@@ -25,12 +24,7 @@ public class SessaoService {
     }
 
     public Sessao findById(String id) {
-        Optional<Sessao> findById = sessaoRepository.findById(id);
-
-        if (!findById.isPresent()) {
-            throw new SessaoNotFoundException();
-        }
-        return findById.get();
+        return sessaoRepository.findById(id).orElseThrow(SessaoNotFoundException::new);
     }
 
     public Sessao save(Sessao sessao) {
@@ -46,20 +40,11 @@ public class SessaoService {
     }
 
     public void delete(Sessao sessao) {
-        Optional<Sessao> sessaoById = sessaoRepository.findById(sessao.getId());
-
-        if (!sessaoById.isPresent()) {
-            throw new SessaoNotFoundException();
-        }
+        sessaoRepository.findById(sessao.getId()).orElseThrow(SessaoNotFoundException::new);
         sessaoRepository.delete(sessao);
     }
 
     public Sessao findByIdAndPautaId(String idSessao, String idPauta) {
-        Optional<Sessao> findByIdAndPautaId = sessaoRepository.findByIdAndPautaId(idSessao, idPauta);
-        if (!findByIdAndPautaId.isPresent()) {
-            throw new SessaoNotFoundException();
-        }
-
-        return findByIdAndPautaId.get();
+        return sessaoRepository.findByIdAndPautaId(idSessao, idPauta).orElseThrow(SessaoNotFoundException::new);
     }
 }

@@ -7,17 +7,26 @@ import com.krzek.votacao.model.Sessao;
 import com.krzek.votacao.model.Voto;
 import com.krzek.votacao.mq.Sender;
 import com.krzek.votacao.repository.VotoRepository;
-import com.krzek.votacao.service.exception.*;
+import com.krzek.votacao.service.exception.InvalidCpfException;
+import com.krzek.votacao.service.exception.SessaoTimeOutException;
+import com.krzek.votacao.service.exception.UnableCpfException;
+import com.krzek.votacao.service.exception.VotoAlreadyExistsException;
+import com.krzek.votacao.service.exception.VotoNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 
 @Service
 public class VotoService {
@@ -56,9 +65,8 @@ public class VotoService {
     }
 
     protected void votoAlreadyExists(Voto voto) {
-        Optional<Voto> votoByCpfAndPauta = votoRepository.findByCpfAndPautaId(voto.getCpf(), voto.getPauta().getId());
-
-        if (votoByCpfAndPauta.isPresent()) {
+        if (votoRepository.findByCpfAndPautaId(voto.getCpf(),
+                voto.getPauta().getId()).isPresent()) {
             throw new VotoAlreadyExistsException();
         }
     }
@@ -71,7 +79,7 @@ public class VotoService {
     protected void cpfAbleToVote(final Voto voto) {
         ResponseEntity<CpfValidationDto> cpfValidation = getCpfValidation(voto);
         if (HttpStatus.OK.equals(cpfValidation.getStatusCode())) {
-            if (CPF_UNABLE_TO_VOTE.equalsIgnoreCase(cpfValidation.getBody().getStatus())) {
+            if (CPF_UNABLE_TO_VOTE.equalsIgnoreCase(Objects.requireNonNull(cpfValidation.getBody()).getStatus())) {
                 throw new UnableCpfException();
             }
         } else {
@@ -82,8 +90,8 @@ public class VotoService {
     protected ResponseEntity<CpfValidationDto> getCpfValidation(final Voto voto) {
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-        HttpEntity<String> entity = new HttpEntity<String>(headers);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        HttpEntity<String> entity = new HttpEntity<>(headers);
         return restTemplate.exchange(urlCpfValidator.concat("/").concat(voto.getCpf()), HttpMethod.GET, entity,
                 CpfValidationDto.class);
     }
@@ -93,21 +101,12 @@ public class VotoService {
     }
 
     public void delete(Voto voto) {
-        Optional<Voto> votoById = votoRepository.findById(voto.getId());
-        if (!votoById.isPresent()) {
-            throw new VotoNotFoundException();
-        }
+        votoRepository.findById(voto.getId()).orElseThrow(VotoNotFoundException::new);
         votoRepository.delete(voto);
     }
 
     public List<Voto> findVotosByPautaId(String pautaId) {
-        Optional<List<Voto>> findByPautaId = votoRepository.findByPautaId(pautaId);
-
-        if (!findByPautaId.isPresent()) {
-            throw new VotoNotFoundException();
-        }
-
-        return findByPautaId.get();
+        return votoRepository.findByPautaId(pautaId).orElseThrow(VotoNotFoundException::new);
     }
 
     public void setUrlCpfValidator(String urlCpfValidator) {
